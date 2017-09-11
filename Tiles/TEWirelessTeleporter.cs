@@ -9,6 +9,7 @@ namespace TPUnchained.Tiles
 {
     internal class TEWirelessTeleporter : ModTileEntity
     {
+        public bool isLokced = false;
         public TEWirelessTeleporter Prev { get; private set; }
         public TEWirelessTeleporter Next { get; private set; }
 
