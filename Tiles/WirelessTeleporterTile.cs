@@ -84,7 +84,7 @@ namespace TPUnchained.Tiles
             if (!TryGetTE(i, j, out TE))
                 return;
 
-            if (TE.isLokced)
+            if (TE.isLocked)
             {
                 frameYOffset = 0;
                 frameXOffset = Main.tileFrame[type] * 54;
@@ -102,7 +102,7 @@ namespace TPUnchained.Tiles
             if (!TryGetTE(i, j, out TE))
                 return;
 
-            if (TE.isLokced && Main.tileLighted[Type])
+            if (TE.isLocked && Main.tileLighted[Type])
             {
                 r = 0; g = 0.6f; b = 0.6f;
             }
@@ -129,6 +129,34 @@ namespace TPUnchained.Tiles
                     Main.mouseItem = Main.LocalPlayer.inventory[Main.LocalPlayer.selectedItem].Clone();
                 }
             }
+        }
+
+        public override void HitWire(int i, int j)
+        {
+            TEWirelessTeleporter TE;
+            if (!TryGetTE(i, j, out TE))
+                return;
+
+            Wiring.SkipWire(TE.Position.X - 1, TE.Position.Y);
+            Wiring.SkipWire(TE.Position.X, TE.Position.Y);
+            Wiring.SkipWire(TE.Position.X + 1, TE.Position.Y);
+
+            if (TE.isLocked)
+                TE.Teleport();
+        }
+
+        public override bool Slope(int i, int j)
+        {
+            TEWirelessTeleporter TE;
+            if (!TryGetTE(i, j, out TE))
+                return false;
+
+            if (TE.isLocked)
+                TE.Disconnect();
+            else
+                TE.Connect();
+
+            return false;
         }
 
         public override void MouseOver(int i, int j)

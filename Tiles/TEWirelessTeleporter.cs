@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using Microsoft.Xna.Framework;
+using System.IO;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.ID;
@@ -9,9 +10,9 @@ namespace TPUnchained.Tiles
 {
     internal class TEWirelessTeleporter : ModTileEntity
     {
-        public bool isLokced = false;
-        public TEWirelessTeleporter Prev { get; private set; }
-        public TEWirelessTeleporter Next { get; private set; }
+        public bool isLocked = false;
+        public int Prev = -1;
+        public int Next = -1;
 
         public override bool ValidTile(int i, int j)
         {
@@ -29,45 +30,156 @@ namespace TPUnchained.Tiles
             return Place(i, j);
         }
 
+        public void Connect()
+        {
+            int address = GetAddress();
+            TPTrackerWrold tracker = mod.GetModWorld<TPTrackerWrold>();
+            foreach (var item in tracker.teleporters)
+            {
+                if(item.GetAddress() == address)
+                {
+                    if (item.Prev != -1)
+                    {
+                        Prev = item.Prev;
+                        Next = item.ID;
+                        item.Prev = ID;
+                        GetByID(Prev).Next = ID;
+                    }
+                    else
+                    {
+                        item.Prev = ID;
+                        item.Next = ID;
+                        Prev = item.ID;
+                        Next = item.ID;
+                    }
+                }
+            }
+            tracker.teleporters.Add(this);
+            isLocked = true;
+        }
+
+        public void Disconnect()
+        {
+            TPTrackerWrold tracker = mod.GetModWorld<TPTrackerWrold>();
+            if (Prev != Next)
+            {
+                GetByID(Prev).Next = Next;
+                GetByID(Next).Prev = Prev;
+            }
+            else if(Next != -1)
+            {
+                GetByID(Next).Next = -1;
+                GetByID(Next).Prev = -1;
+            }
+            Next = -1;
+            Prev = -1;
+            tracker.teleporters.Remove(this);
+            isLocked = false;
+        }
+
+        public void PushDown()
+        {
+
+        }
+
+        public void Teleport()
+        {
+            Teleport(Position, GetByID(Next).Position);
+            Teleport(GetByID(Prev).Position, Position);
+
+            for (int l = 0; l < Main.player.Length; l++)
+            {
+                Main.player[l].teleporting = false;
+            }
+        }
+
+        private void Teleport(Point16 from, Point16 to)
+        {
+            if (Wiring.blockPlayerTeleportationForOneIteration)
+                return;
+
+            Rectangle fromRect = new Rectangle(from.X * 16, from.Y * 16 - 48, 48, 48);
+            Rectangle toRect = new Rectangle(to.X * 16, to.Y * 16 - 48, 48, 48);
+            Vector2 delta = new Vector2(toRect.X - fromRect.X, toRect.Y - fromRect.Y);
+
+
+            for (int j = 0; j < Main.player.Length; j++)
+            {
+                if (Main.player[j].active && !Main.player[j].dead && !Main.player[j].teleporting && fromRect.Intersects(Main.player[j].getRect()))
+                {
+                    Vector2 newPos = Main.player[j].position + delta;
+                    Main.player[j].teleporting = true;
+                    if (Main.netMode == 2)
+                    {
+                        RemoteClient.CheckSection(j, newPos, 1);
+                    }
+                    Main.player[j].Teleport(newPos, 0, 0);
+                    if (Main.netMode == 2)
+                    {
+                        NetMessage.SendData(65, -1, -1, null, 0, (float)j, newPos.X, newPos.Y, 0, 0, 0);
+                    }
+                }
+            }
+        }
+
+        public int GetAddress()
+        {
+            int add = Main.tile[Position.X - 1, Position.Y].frameY / 18;
+            add |= (Main.tile[Position.X , Position.Y].frameY / 18) << 4;
+            add |= (Main.tile[Position.X + 1, Position.Y].frameY / 18) << 8;
+            return add;
+        }
+
+        public TEWirelessTeleporter GetByID(int ID)
+        {
+            return (TEWirelessTeleporter)TileEntity.ByID[ID];
+        }
+
+        public override void OnKill()
+        {
+            Disconnect();
+        }
+
         public override TagCompound Save()
         {
             TagCompound tag = new TagCompound();
-            if (Prev != null)
-                tag.Add("Prev", Prev.ID);
-            if (Next != null)
-                tag.Add("Next", Next.ID);
+            tag.Add("Prev", Prev);
+            tag.Add("Next", Next);
+
+            tag.Add("isLocked", isLocked);
             return tag;
         }
 
         public override void Load(TagCompound tag)
         {
-            TileEntity temp;
-            if (tag.ContainsKey("Prev") && ByID.TryGetValue((int)tag["Prev"], out temp))
-                Prev = temp as TEWirelessTeleporter;
-            if (tag.ContainsKey("Next") && ByID.TryGetValue((int)tag["Next"], out temp))
-                Prev = temp as TEWirelessTeleporter;
+            if (tag.ContainsKey("Prev") )
+                Prev = (int)tag["Prev"];
+            if (tag.ContainsKey("Next"))
+                Next = (int)tag["Next"];
+
+            if (tag.ContainsKey("isLocked"))
+            {
+                if ((byte)tag["isLocked"] == 1)
+                    isLocked = true;
+                else
+                    isLocked = false;
+            }
         }
 
         public override void NetSend(BinaryWriter writer, bool lightSend)
         {
-            if (Prev != null)
-                writer.Write(Prev.ID);
-            else
-                writer.Write((int)-1);
+            writer.Write(isLocked);
 
-            if (Next != null)
-                writer.Write(Next.ID);
-            else
-                writer.Write((int)-1);
+            writer.Write(Prev);
+            writer.Write(Next);
         }
 
         public override void NetReceive(BinaryReader reader, bool lightReceive)
         {
-            TileEntity temp;
-            if (ByID.TryGetValue(reader.ReadInt32(), out temp))
-                Prev = temp as TEWirelessTeleporter;
-            if (ByID.TryGetValue(reader.ReadInt32(), out temp))
-                Prev = temp as TEWirelessTeleporter;
+            isLocked = reader.ReadBoolean();
+
+            Prev = reader.ReadInt32();
+            Next = reader.ReadInt32();
         }
     }
 }
