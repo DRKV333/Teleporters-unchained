@@ -114,6 +114,11 @@ namespace TPUnchained.Tiles
 
         public override void RightClick(int i, int j)
         {
+            TEWirelessTeleporter TE;
+            if (!TryGetTE(i, j, out TE) || TE.isLocked)
+                return;
+
+
             Tile tile = Main.tile[i, j];
 
             if (SetSlotItem(i, j, Main.LocalPlayer.HeldItem.type))
