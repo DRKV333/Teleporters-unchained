@@ -80,13 +80,27 @@ namespace TPUnchained.Tiles
 
         public void PushDown()
         {
+            if(Prev != Next)
+            {
+                GetByPos(Prev).Next = Next;
+                GetByPos(Next).Prev = Prev;
 
+                Prev = Next;
+
+                Next = GetByPos(Prev).Next;
+                GetByPos(Next).Prev = Position;
+
+                GetByPos(Prev).Next = Position;
+
+            }
         }
 
         public void Teleport()
         {
-            Teleport(Position, Next);
-            Teleport(Prev, Position);
+            if(Next != Point16.Zero)
+                Teleport(Position, Next);
+            if(Prev != Point16.Zero)
+                Teleport(Prev, Position);
 
             for (int l = 0; l < Main.player.Length; l++)
             {

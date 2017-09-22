@@ -36,6 +36,9 @@ namespace TPUnchained.Items
 
         public override bool UseItem(Player player)
         {
+            if (player.altFunctionUse == 2)
+                return false;
+
             TEWirelessTeleporter target;
             if (TryGetTarget(out target))
             {
@@ -47,14 +50,15 @@ namespace TPUnchained.Items
             return true;
         }
 
-        public override void RightClick(Player player)
-        {
+        public override bool AltFunctionUse(Player player)
+         {
             TEWirelessTeleporter target;
             if (TryGetTarget(out target))
             {
                 if (target.isLocked)
                     target.PushDown();
             }
+            return true;
         }
     }
 }
