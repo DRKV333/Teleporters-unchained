@@ -33,7 +33,7 @@ namespace TPUnchained.Tiles
         public void Connect()
         {
             int address = GetAddress();
-            TPTrackerWrold tracker = mod.GetModWorld<TPTrackerWrold>();
+            TPTrackerWorld tracker = mod.GetModWorld<TPTrackerWorld>();
             foreach (var item in tracker.teleporters)
             {
                 if(item.GetAddress() == address)
@@ -52,6 +52,7 @@ namespace TPUnchained.Tiles
                         Prev = item.ID;
                         Next = item.ID;
                     }
+                    break;
                 }
             }
             tracker.teleporters.Add(this);
@@ -60,7 +61,7 @@ namespace TPUnchained.Tiles
 
         public void Disconnect()
         {
-            TPTrackerWrold tracker = mod.GetModWorld<TPTrackerWrold>();
+            TPTrackerWorld tracker = mod.GetModWorld<TPTrackerWorld>();
             if (Prev != Next)
             {
                 GetByID(Prev).Next = Next;
