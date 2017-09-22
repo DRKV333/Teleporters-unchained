@@ -11,8 +11,8 @@ namespace TPUnchained.Tiles
     internal class TEWirelessTeleporter : ModTileEntity
     {
         public bool isLocked = false;
-        public int Prev = -1;
-        public int Next = -1;
+        public Point16 Prev = Point16.Zero;
+        public Point16 Next = Point16.Zero;
 
         public override bool ValidTile(int i, int j)
         {
@@ -38,19 +38,19 @@ namespace TPUnchained.Tiles
             {
                 if(item.GetAddress() == address)
                 {
-                    if (item.Prev != -1)
+                    if (item.Prev != Point16.Zero)
                     {
                         Prev = item.Prev;
-                        Next = item.ID;
-                        item.Prev = ID;
-                        GetByID(Prev).Next = ID;
+                        Next = item.Position;
+                        item.Prev = Position;
+                        GetByPos(Prev).Next = Position;
                     }
                     else
                     {
-                        item.Prev = ID;
-                        item.Next = ID;
-                        Prev = item.ID;
-                        Next = item.ID;
+                        item.Prev = Position;
+                        item.Next = Position;
+                        Prev = item.Position;
+                        Next = item.Position;
                     }
                     break;
                 }
@@ -64,16 +64,16 @@ namespace TPUnchained.Tiles
             TPTrackerWorld tracker = mod.GetModWorld<TPTrackerWorld>();
             if (Prev != Next)
             {
-                GetByID(Prev).Next = Next;
-                GetByID(Next).Prev = Prev;
+                GetByPos(Prev).Next = Next;
+                GetByPos(Next).Prev = Prev;
             }
-            else if(Next != -1)
+            else if(Next != Point16.Zero)
             {
-                GetByID(Next).Next = -1;
-                GetByID(Next).Prev = -1;
+                GetByPos(Next).Next = Point16.Zero;
+                GetByPos(Next).Prev = Point16.Zero;
             }
-            Next = -1;
-            Prev = -1;
+            Next = Point16.Zero;
+            Prev = Point16.Zero;
             tracker.teleporters.Remove(this);
             isLocked = false;
         }
@@ -85,8 +85,8 @@ namespace TPUnchained.Tiles
 
         public void Teleport()
         {
-            Teleport(Position, GetByID(Next).Position);
-            Teleport(GetByID(Prev).Position, Position);
+            Teleport(Position, Next);
+            Teleport(Prev, Position);
 
             for (int l = 0; l < Main.player.Length; l++)
             {
@@ -131,9 +131,9 @@ namespace TPUnchained.Tiles
             return add;
         }
 
-        public TEWirelessTeleporter GetByID(int ID)
+        public TEWirelessTeleporter GetByPos(Point16 pos)
         {
-            return (TEWirelessTeleporter)TileEntity.ByID[ID];
+            return (TEWirelessTeleporter)ByPosition[pos];
         }
 
         public override void OnKill()
@@ -144,43 +144,49 @@ namespace TPUnchained.Tiles
         public override TagCompound Save()
         {
             TagCompound tag = new TagCompound();
-            tag.Add("Prev", Prev);
-            tag.Add("Next", Next);
+            tag.Add("X", Prev.X);
+            tag.Add("Y", Prev.Y);
+            tag.Add("I", Next.X);
+            tag.Add("J", Next.Y);
 
-            tag.Add("isLocked", isLocked);
+            tag.Add("L", isLocked);
             return tag;
         }
 
         public override void Load(TagCompound tag)
         {
-            if (tag.ContainsKey("Prev") )
-                Prev = (int)tag["Prev"];
-            if (tag.ContainsKey("Next"))
-                Next = (int)tag["Next"];
+            if (tag.ContainsKey("X") && tag.ContainsKey("Y"))
+                Prev = new Point16((short)tag["X"], (short)tag["Y"]);
+            if (tag.ContainsKey("I") && tag.ContainsKey("J"))
+                Next = new Point16((short)tag["I"], (short)tag["J"]);
 
-            if (tag.ContainsKey("isLocked"))
+            if (tag.ContainsKey("L"))
             {
-                if ((byte)tag["isLocked"] == 1)
+                if ((byte)tag["L"] == 1)
                     isLocked = true;
                 else
                     isLocked = false;
             }
+
+            mod.GetModWorld<TPTrackerWorld>().teleporters.Add(this);
         }
 
         public override void NetSend(BinaryWriter writer, bool lightSend)
         {
             writer.Write(isLocked);
 
-            writer.Write(Prev);
-            writer.Write(Next);
+            writer.WritePackedVector2(Prev.ToVector2());
+            writer.WritePackedVector2(Next.ToVector2());
         }
 
         public override void NetReceive(BinaryReader reader, bool lightReceive)
         {
             isLocked = reader.ReadBoolean();
 
-            Prev = reader.ReadInt32();
-            Next = reader.ReadInt32();
+            Prev = reader.ReadPackedVector2().ToPoint16();
+            Next = reader.ReadPackedVector2().ToPoint16();
+
+            mod.GetModWorld<TPTrackerWorld>().teleporters.Add(this);
         }
     }
 }

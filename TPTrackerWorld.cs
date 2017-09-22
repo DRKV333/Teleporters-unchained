@@ -18,70 +18,20 @@ namespace TPUnchained
     {
         public List<TEWirelessTeleporter> teleporters = new List<TEWirelessTeleporter>();
 
-        public override void Load(TagCompound tag)
-        {
-            if (tag.ContainsKey("IDS"))
-            {
-                foreach (var item in (int[])tag["IDS"])
-                {
-                    TileEntity te;
-                    if (TileEntity.ByID.TryGetValue(item, out te))
-                        teleporters.Add((TEWirelessTeleporter)te);
-                }
-            }
-        }
-
-        public override TagCompound Save()
-        {
-            TagCompound tag = new TagCompound();
-            tag.Add("IDS", teleporters.Select(x => x.ID).ToArray());
-            return tag;
-        }
-
-        public override void NetSend(BinaryWriter writer)
-        {
-            writer.Write(teleporters.Count);
-            foreach (var item in teleporters.Select(x => x.ID))
-            {
-                writer.Write(item);
-            }
-        }
-
-        public override void NetReceive(BinaryReader reader)
-        {
-            int count = reader.ReadInt32();
-            for (int i = 0; i < count; i++)
-            {
-                TileEntity te;
-                if (TileEntity.ByID.TryGetValue(reader.ReadInt32(), out te))
-                    teleporters.Add((TEWirelessTeleporter)te);
-            }
-        }
-
-        
-
         public override void PostUpdate()
         {
+            Vector2 middleOffset = new Vector2(8, 8);
+
             if (Main.tileFrame[mod.TileType<WirelessTeleporterTile>()] == 0 && Main.tileFrameCounter[mod.TileType<WirelessTeleporterTile>()] == 0)
             {
                 foreach (var item in teleporters)
                 {
-                    Vector2 thisPos = new Vector2(item.Position.X * 16 + 8, item.Position.Y * 16 + 8);
+                    Vector2 thisPos = item.Position.ToVector2() * 16 + middleOffset;
 
-                    if(item.Next != -1)
+                    if(item.Next != Point16.Zero)
                     {
-                        TileEntity next = TileEntity.ByID[item.Next];
-                        Vector2 nextPos = new Vector2(next.Position.X * 16 + 8, next.Position.Y * 16 + 8);
-
+                        Vector2 nextPos = item.Next.ToVector2() * 16 + middleOffset;
                         Dust dust = Dust.NewDustPerfect(thisPos, mod.DustType<TracerDust>(), (nextPos - thisPos) / 10);
-                    }
-                    
-                    if (item.Prev != -1)
-                    {
-                        TileEntity prev = TileEntity.ByID[item.Prev];
-                        Vector2 prevPos = new Vector2(prev.Position.X * 16 + 8, prev.Position.Y * 16 + 8);
-
-                        Dust dust = Dust.NewDustPerfect(prevPos, mod.DustType<TracerDust>(), (thisPos - prevPos) / 10);
                     }
                 }
             }
