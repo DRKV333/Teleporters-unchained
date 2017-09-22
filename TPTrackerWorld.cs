@@ -19,6 +19,11 @@ namespace TPUnchained
     {
         public List<TEWirelessTeleporter> teleporters = new List<TEWirelessTeleporter>();
 
+        public override void Load(TagCompound tag)
+        {
+            teleporters.Clear();
+        }
+
         public override void PostUpdate()
         {
             if (Main.LocalPlayer.HeldItem.type != mod.ItemType<FineTuningWrenchItem>())
