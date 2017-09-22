@@ -53,7 +53,8 @@ namespace TPUnchained.Tiles
 
         public override void KillTile(int i, int j, ref bool fail, ref bool effectOnly, ref bool noItem)
         {
-            SetSlotItem(i, j, 0);
+            if(!effectOnly)
+                SetSlotItem(i, j, 0);
         }
 
         public override void KillMultiTile(int i, int j, int frameX, int frameY)

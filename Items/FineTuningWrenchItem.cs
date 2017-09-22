@@ -46,6 +46,7 @@ namespace TPUnchained.Items
                     target.Disconnect();
                 else
                     target.Connect();
+                WorldGen.KillTile(target.Position.X, target.Position.Y, false, true);
             }
             return true;
         }
@@ -57,6 +58,7 @@ namespace TPUnchained.Items
             {
                 if (target.isLocked)
                     target.PushDown();
+                WorldGen.KillTile(target.Position.X, target.Position.Y, false, true);
             }
             return true;
         }
