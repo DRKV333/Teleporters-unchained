@@ -11,6 +11,7 @@ using Terraria.ModLoader.IO;
 using TPUnchained.Tiles;
 using Microsoft.Xna.Framework;
 using Terraria.ID;
+using TPUnchained.Items;
 
 namespace TPUnchained
 {
@@ -20,6 +21,10 @@ namespace TPUnchained
 
         public override void PostUpdate()
         {
+            if (Main.LocalPlayer.HeldItem.type != mod.ItemType<FineTuningWrenchItem>())
+                return;
+            
+
             Vector2 middleOffset = new Vector2(8, 8);
 
             if (Main.tileFrame[mod.TileType<WirelessTeleporterTile>()] == 0 && Main.tileFrameCounter[mod.TileType<WirelessTeleporterTile>()] == 0)

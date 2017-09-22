@@ -33,11 +33,11 @@ namespace TPUnchained.Tiles
             AddMapEntry(new Color(255, 255, 255));
         }
 
-        private bool TryGetTE(int i, int j, out TEWirelessTeleporter te)
+        public bool TryGetTE(int i, int j, out TEWirelessTeleporter te)
         {
             te = null;
             Tile tile = Main.tile[i, j];
-            if (tile == null || !tile.active())
+            if (tile == null || !tile.active() && tile.type != Type)
                 return false;
 
             int originX = (i - tile.frameX % 54 / 18) + 1;
@@ -148,20 +148,6 @@ namespace TPUnchained.Tiles
 
             if (TE.isLocked)
                 TE.Teleport();
-        }
-
-        public override bool Slope(int i, int j)
-        {
-            TEWirelessTeleporter TE;
-            if (!TryGetTE(i, j, out TE))
-                return false;
-
-            if (TE.isLocked)
-                TE.Disconnect();
-            else
-                TE.Connect();
-
-            return false;
         }
 
         public override void MouseOver(int i, int j)

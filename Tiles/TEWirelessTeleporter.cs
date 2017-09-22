@@ -168,7 +168,8 @@ namespace TPUnchained.Tiles
                     isLocked = false;
             }
 
-            mod.GetModWorld<TPTrackerWorld>().teleporters.Add(this);
+            if(isLocked)
+                mod.GetModWorld<TPTrackerWorld>().teleporters.Add(this);
         }
 
         public override void NetSend(BinaryWriter writer, bool lightSend)
@@ -186,7 +187,8 @@ namespace TPUnchained.Tiles
             Prev = reader.ReadPackedVector2().ToPoint16();
             Next = reader.ReadPackedVector2().ToPoint16();
 
-            mod.GetModWorld<TPTrackerWorld>().teleporters.Add(this);
+            if (isLocked)
+                mod.GetModWorld<TPTrackerWorld>().teleporters.Add(this);
         }
     }
 }
