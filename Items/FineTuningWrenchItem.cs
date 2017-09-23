@@ -16,7 +16,7 @@ namespace TPUnchained.Items
         {
             item.width = 28;
             item.height = 30;
-            item.value = 5000; //TBD
+            item.value = Item.buyPrice(1,0,0,0);
             item.maxStack = 1;
             item.useTurn = true;
             item.autoReuse = false;

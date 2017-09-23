@@ -63,6 +63,7 @@
     <Compile Include="Items\WirelessTeleporterItem.cs" />
     <Compile Include="Tiles\TEWirelessTeleporter.cs" />
     <Compile Include="Tiles\WirelessTeleporterTile.cs" />
+    <Compile Include="TPUnchainedGlobalNPC.cs" />
     <Compile Include="Tracking\TPTrackerWorld.cs" />
     <Compile Include="TPUnchained.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -1,4 +1,5 @@
-﻿using Terraria.ModLoader;
+﻿using Terraria;
+using Terraria.ModLoader;
 using TPUnchained.Tiles;
 
 namespace TPUnchained.Items
@@ -8,14 +9,14 @@ namespace TPUnchained.Items
         public override void SetStaticDefaults()
         {
             DisplayName.SetDefault("Wireless teleporter");
-            Tooltip.SetDefault("TBD");
+            Tooltip.SetDefault("Right click on slots with gems to set address\nUse Fine-tuning wrench to lock");
         }
 
         public override void SetDefaults()
         {
             item.width = 28;
             item.height = 14;
-            item.value = 5000; //TBD
+            item.value = Item.buyPrice(0, 10, 0, 0);
             item.maxStack = 99;
             item.useTurn = true;
             item.autoReuse = true;
