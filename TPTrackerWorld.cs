@@ -28,20 +28,26 @@ namespace TPUnchained
         {
             if (Main.LocalPlayer.HeldItem.type != mod.ItemType<FineTuningWrenchItem>())
                 return;
-            
 
             Vector2 middleOffset = new Vector2(8, 8);
 
-            if (Main.tileFrame[mod.TileType<WirelessTeleporterTile>()] == 0 && Main.tileFrameCounter[mod.TileType<WirelessTeleporterTile>()] == 0)
+            if (Main.tileFrameCounter[mod.TileType<WirelessTeleporterTile>()] == 0)
             {
                 foreach (var item in teleporters)
                 {
-                    Vector2 thisPos = item.Position.ToVector2() * 16 + middleOffset;
-
                     if(item.Next != Point16.Zero)
                     {
+                        Vector2 thisPos = item.Position.ToVector2() * 16 + middleOffset;
                         Vector2 nextPos = item.Next.ToVector2() * 16 + middleOffset;
-                        Dust dust = Dust.NewDustPerfect(thisPos, mod.DustType<TracerDust>(), (nextPos - thisPos) / 10);
+
+                        Vector2 velocity = nextPos - thisPos;
+                        velocity.Normalize();
+                        velocity *= 10;
+
+                        int lifeTime = (int)Vector2.Distance(thisPos, nextPos) / 10;
+
+                        Dust dust = Dust.NewDustPerfect(thisPos, mod.DustType<TracerDust>(), velocity);
+                        dust.customData = lifeTime;
                     }
                 }
             }
