@@ -4,7 +4,7 @@ using TPUnchained.Tiles;
 
 namespace TPUnchained.Items
 {
-    internal class FineTuningWrenchItem : ModItem
+    public class FineTuningWrenchItem : ModItem
     {
         public override void SetStaticDefaults()
         {
@@ -52,7 +52,7 @@ namespace TPUnchained.Items
         }
 
         public override bool AltFunctionUse(Player player)
-         {
+        {
             TEWirelessTeleporter target;
             if (TryGetTarget(out target))
             {

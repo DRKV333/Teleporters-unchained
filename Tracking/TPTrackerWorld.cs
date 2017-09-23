@@ -1,21 +1,15 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
-using TPUnchained.Tiles;
-using Microsoft.Xna.Framework;
-using Terraria.ID;
 using TPUnchained.Items;
+using TPUnchained.Tiles;
 
-namespace TPUnchained
+namespace TPUnchained.Tracking
 {
-    class TPTrackerWorld : ModWorld
+    internal class TPTrackerWorld : ModWorld
     {
         public List<TEWirelessTeleporter> teleporters = new List<TEWirelessTeleporter>();
 
@@ -35,7 +29,7 @@ namespace TPUnchained
             {
                 foreach (var item in teleporters)
                 {
-                    if(item.Next != Point16.Zero)
+                    if (item.Next != Point16.Zero)
                     {
                         Vector2 thisPos = item.Position.ToVector2() * 16 + middleOffset;
                         Vector2 nextPos = item.Next.ToVector2() * 16 + middleOffset;

@@ -63,10 +63,10 @@
     <Compile Include="Items\WirelessTeleporterItem.cs" />
     <Compile Include="Tiles\TEWirelessTeleporter.cs" />
     <Compile Include="Tiles\WirelessTeleporterTile.cs" />
-    <Compile Include="TPTrackerWorld.cs" />
+    <Compile Include="Tracking\TPTrackerWorld.cs" />
     <Compile Include="TPUnchained.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TracerDust.cs" />
+    <Compile Include="Tracking\TracerDust.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

@@ -3,7 +3,7 @@ using TPUnchained.Tiles;
 
 namespace TPUnchained.Items
 {
-    internal class WirelessTeleporterItem : ModItem
+    public class WirelessTeleporterItem : ModItem
     {
         public override void SetStaticDefaults()
         {

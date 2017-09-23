@@ -9,7 +9,7 @@ using TPUnchained.Items;
 
 namespace TPUnchained.Tiles
 {
-    internal class WirelessTeleporterTile : ModTile
+    public class WirelessTeleporterTile : ModTile
     {
         public override void SetDefaults()
         {
@@ -53,7 +53,7 @@ namespace TPUnchained.Tiles
 
         public override void KillTile(int i, int j, ref bool fail, ref bool effectOnly, ref bool noItem)
         {
-            if(!effectOnly)
+            if (!effectOnly)
                 SetSlotItem(i, j, 0);
         }
 
@@ -118,7 +118,6 @@ namespace TPUnchained.Tiles
             TEWirelessTeleporter TE;
             if (!TryGetTE(i, j, out TE) || TE.isLocked)
                 return;
-
 
             Tile tile = Main.tile[i, j];
 

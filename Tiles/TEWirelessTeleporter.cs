@@ -5,10 +5,11 @@ using Terraria.DataStructures;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
+using TPUnchained.Tracking;
 
 namespace TPUnchained.Tiles
 {
-    internal class TEWirelessTeleporter : ModTileEntity
+    public class TEWirelessTeleporter : ModTileEntity
     {
         public bool isLocked = false;
         public Point16 Prev = Point16.Zero;
@@ -36,7 +37,7 @@ namespace TPUnchained.Tiles
             TPTrackerWorld tracker = mod.GetModWorld<TPTrackerWorld>();
             foreach (var item in tracker.teleporters)
             {
-                if(item.GetAddress() == address)
+                if (item.GetAddress() == address)
                 {
                     if (item.Prev != Point16.Zero)
                     {
@@ -67,7 +68,7 @@ namespace TPUnchained.Tiles
                 GetByPos(Prev).Next = Next;
                 GetByPos(Next).Prev = Prev;
             }
-            else if(Next != Point16.Zero)
+            else if (Next != Point16.Zero)
             {
                 GetByPos(Next).Next = Point16.Zero;
                 GetByPos(Next).Prev = Point16.Zero;
@@ -80,7 +81,7 @@ namespace TPUnchained.Tiles
 
         public void PushDown()
         {
-            if(Prev != Next)
+            if (Prev != Next)
             {
                 GetByPos(Prev).Next = Next;
                 GetByPos(Next).Prev = Prev;
@@ -91,15 +92,14 @@ namespace TPUnchained.Tiles
                 GetByPos(Next).Prev = Position;
 
                 GetByPos(Prev).Next = Position;
-
             }
         }
 
         public void Teleport()
         {
-            if(Next != Point16.Zero)
+            if (Next != Point16.Zero)
                 Teleport(Position, Next);
-            if(Prev != Point16.Zero)
+            if (Prev != Point16.Zero)
                 Teleport(Prev, Position);
 
             for (int i = 0; i < Main.player.Length; i++)
@@ -156,7 +156,7 @@ namespace TPUnchained.Tiles
         public int GetAddress()
         {
             int add = Main.tile[Position.X - 1, Position.Y].frameY / 18;
-            add |= (Main.tile[Position.X , Position.Y].frameY / 18) << 4;
+            add |= (Main.tile[Position.X, Position.Y].frameY / 18) << 4;
             add |= (Main.tile[Position.X + 1, Position.Y].frameY / 18) << 8;
             return add;
         }
@@ -198,7 +198,7 @@ namespace TPUnchained.Tiles
                     isLocked = false;
             }
 
-            if(isLocked)
+            if (isLocked)
                 mod.GetModWorld<TPTrackerWorld>().teleporters.Add(this);
         }
 

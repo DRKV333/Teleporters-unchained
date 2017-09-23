@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ModLoader;
-using Microsoft.Xna.Framework;
 
-namespace TPUnchained
+namespace TPUnchained.Tracking
 {
-    class TracerDust : ModDust
+    internal class TracerDust : ModDust
     {
         public override void OnSpawn(Dust dust)
         {
@@ -25,7 +20,7 @@ namespace TPUnchained
             int framesLeft = (int)dust.customData;
             dust.customData = framesLeft - 1;
 
-            if(framesLeft < 0)
+            if (framesLeft < 0)
             {
                 dust.active = false;
             }
