@@ -102,36 +102,52 @@ namespace TPUnchained.Tiles
             if(Prev != Point16.Zero)
                 Teleport(Prev, Position);
 
-            for (int l = 0; l < Main.player.Length; l++)
+            for (int i = 0; i < Main.player.Length; i++)
             {
-                Main.player[l].teleporting = false;
+                Main.player[i].teleporting = false;
+            }
+            for (int i = 0; i < Main.npc.Length; i++)
+            {
+                Main.npc[i].teleporting = false;
             }
         }
 
         private void Teleport(Point16 from, Point16 to)
         {
-            if (Wiring.blockPlayerTeleportationForOneIteration)
-                return;
-
             Rectangle fromRect = new Rectangle(from.X * 16, from.Y * 16 - 48, 48, 48);
             Rectangle toRect = new Rectangle(to.X * 16, to.Y * 16 - 48, 48, 48);
             Vector2 delta = new Vector2(toRect.X - fromRect.X, toRect.Y - fromRect.Y);
 
-
-            for (int j = 0; j < Main.player.Length; j++)
+            if (!Wiring.blockPlayerTeleportationForOneIteration)
             {
-                if (Main.player[j].active && !Main.player[j].dead && !Main.player[j].teleporting && fromRect.Intersects(Main.player[j].getRect()))
+                for (int i = 0; i < Main.player.Length; i++)
                 {
-                    Vector2 newPos = Main.player[j].position + delta;
-                    Main.player[j].teleporting = true;
-                    if (Main.netMode == 2)
+                    if (Main.player[i].active && !Main.player[i].dead && !Main.player[i].teleporting && fromRect.Intersects(Main.player[i].getRect()))
                     {
-                        RemoteClient.CheckSection(j, newPos, 1);
+                        Vector2 newPos = Main.player[i].position + delta;
+                        Main.player[i].teleporting = true;
+                        if (Main.netMode == 2)
+                        {
+                            RemoteClient.CheckSection(i, newPos, 1);
+                        }
+                        Main.player[i].Teleport(newPos, 0, 0);
+                        if (Main.netMode == 2)
+                        {
+                            NetMessage.SendData(65, -1, -1, null, 0, (float)i, newPos.X, newPos.Y, 0, 0, 0);
+                        }
                     }
-                    Main.player[j].Teleport(newPos, 0, 0);
-                    if (Main.netMode == 2)
+                }
+            }
+
+            for (int i = 0; i < Main.npc.Length; i++)
+            {
+                if (Main.npc[i].active && !Main.npc[i].teleporting && Main.npc[i].lifeMax > 5 && !Main.npc[i].boss && !Main.npc[i].noTileCollide)
+                {
+                    int type = Main.npc[i].type;
+                    if (!NPCID.Sets.TeleportationImmune[type] && fromRect.Intersects(Main.npc[i].getRect()))
                     {
-                        NetMessage.SendData(65, -1, -1, null, 0, (float)j, newPos.X, newPos.Y, 0, 0, 0);
+                        Main.npc[i].teleporting = true;
+                        Main.npc[i].Teleport(Main.npc[i].position + delta, 0, 0);
                     }
                 }
             }
