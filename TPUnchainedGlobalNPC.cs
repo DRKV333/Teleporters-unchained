@@ -16,7 +16,6 @@ namespace TPUnchained
         {
             if(type == NPCID.Steampunker && NPC.downedPlantBoss)
             {
-                shop.item[nextSlot++].SetDefaults(mod.ItemType<WirelessTeleporterItem>());
                 shop.item[nextSlot++].SetDefaults(mod.ItemType<FineTuningWrenchItem>());
             }
         }
