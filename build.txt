@@ -1,6 +1,7 @@
 author = DRKV & JamesTMP
 version = 1.0
 displayName = Teleporters unchained
+homepage = https://forums.terraria.org/index.php?threads/teleporters-unchained.62348/
 includePDB = true
 buildIgnore = .gitignore, .gitattributes, description.txt, *.csproj*, *.sln, .git/*, .vs/*, bin/*, obj/*, *.xcf
 hideCode = false
