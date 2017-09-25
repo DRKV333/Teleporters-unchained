@@ -18,6 +18,7 @@ namespace TPUnchained.Items
             item.width = 28;
             item.height = 14;
             item.value = Item.buyPrice(0, 10, 0, 0);
+            item.rare = 9;
             item.maxStack = 99;
             item.useTurn = true;
             item.autoReuse = true;
