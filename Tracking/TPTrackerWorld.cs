@@ -18,7 +18,7 @@ namespace TPUnchained.Tracking
             teleporters.Clear();
         }
 
-        public override void PostUpdate()
+        public override void PostDrawTiles()
         {
             if (Main.LocalPlayer.HeldItem.type != mod.ItemType<FineTuningWrenchItem>())
                 return;
@@ -46,5 +46,6 @@ namespace TPUnchained.Tracking
                 }
             }
         }
+
     }
 }
