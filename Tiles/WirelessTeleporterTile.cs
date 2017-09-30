@@ -176,6 +176,8 @@ namespace TPUnchained.Tiles
 
         public bool SetSlotItem(int i, int j, int type)
         {
+            bool success = false;
+
             int prevType = GetSlotItem(i, j);
             if (prevType != 0)
             {
@@ -187,17 +189,23 @@ namespace TPUnchained.Tiles
             {
                 switch (type)
                 {
-                    case ItemID.Amethyst: tile.frameY = 18; return true;
-                    case ItemID.Topaz: tile.frameY = 36; return true;
-                    case ItemID.Sapphire: tile.frameY = 54; return true;
-                    case ItemID.Emerald: tile.frameY = 72; return true;
-                    case ItemID.Ruby: tile.frameY = 90; return true;
-                    case ItemID.Diamond: tile.frameY = 108; return true;
-                    case ItemID.Amber: tile.frameY = 126; return true;
-                    default: tile.frameY = 0; return false;
+                    case ItemID.Amethyst: tile.frameY = 18; success = true; break;
+                    case ItemID.Topaz: tile.frameY = 36; success = true; break;
+                    case ItemID.Sapphire: tile.frameY = 54; success = true; break;
+                    case ItemID.Emerald: tile.frameY = 72; success = true; break;
+                    case ItemID.Ruby: tile.frameY = 90; success = true; break;
+                    case ItemID.Diamond: tile.frameY = 108; success = true; break;
+                    case ItemID.Amber: tile.frameY = 126; success = true; break;
+                    default: tile.frameY = 0; break;
                 }
             }
-            return false;
+
+            if(Main.netMode == 1 && success)
+            {
+                NetMessage.SendTileSquare(-1, i, j, 1, TileChangeType.None);
+            }
+
+            return success;
         }
     }
 }
