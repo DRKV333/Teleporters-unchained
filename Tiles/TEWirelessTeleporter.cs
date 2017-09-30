@@ -198,8 +198,8 @@ namespace TPUnchained.Tiles
 
         private void Teleport(Point16 from, Point16 to, bool auto)
         {
-            Rectangle fromRect = new Rectangle(from.X * 16, from.Y * 16 - 48, 48, 48);
-            Rectangle toRect = new Rectangle(to.X * 16, to.Y * 16 - 48, 48, 48);
+            Rectangle fromRect = new Rectangle(from.X * 16 - 16, from.Y * 16 - 48, 48, 48);
+            Rectangle toRect = new Rectangle(to.X * 16 - 16, to.Y * 16 - 48, 48, 48);
             Vector2 delta = new Vector2(toRect.X - fromRect.X, toRect.Y - fromRect.Y);
 
             if (!Wiring.blockPlayerTeleportationForOneIteration)
