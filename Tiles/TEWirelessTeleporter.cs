@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using System.Collections.Generic;
 using System.IO;
 using Terraria;
 using Terraria.DataStructures;
@@ -33,65 +34,141 @@ namespace TPUnchained.Tiles
 
         public void Connect()
         {
-            int address = GetAddress();
-            TPTrackerWorld tracker = mod.GetModWorld<TPTrackerWorld>();
-            foreach (var item in tracker.teleporters)
+            if (isLocked)
+                return;
+
+            if (Main.netMode == 1)
             {
-                if (item.GetAddress() == address)
-                {
-                    if (item.Prev != Point16.Zero)
-                    {
-                        Prev = item.Prev;
-                        Next = item.Position;
-                        item.Prev = Position;
-                        GetByPos(Prev).Next = Position;
-                    }
-                    else
-                    {
-                        item.Prev = Position;
-                        item.Next = Position;
-                        Prev = item.Position;
-                        Next = item.Position;
-                    }
-                    break;
-                }
+                SendRequest(TPUnchained.ModMessageID.RequestLock);
             }
-            tracker.teleporters.Add(this);
-            isLocked = true;
+            else
+            {
+                isLocked = true;
+
+                int address = GetAddress();
+                TPTrackerWorld tracker = mod.GetModWorld<TPTrackerWorld>();
+                foreach (var item in tracker.teleporters)
+                {
+                    if (item.GetAddress() == address)
+                    {
+                        if (item.Prev != Point16.Zero)
+                        {
+                            Prev = item.Prev;
+                            Next = item.Position;
+                            item.Prev = Position;
+                            GetByPos(Prev).Next = Position;
+                            if (Main.netMode == 2)
+                            {
+                                GetByPos(Prev).SendData();
+                                item.SendData();
+                            }
+                        }
+                        else
+                        {
+                            item.Prev = Position;
+                            item.Next = Position;
+                            Prev = item.Position;
+                            Next = item.Position;
+                            if (Main.netMode == 2)
+                            {
+                                item.SendData();
+                            }
+                        }
+
+                        if (Main.netMode == 2)
+                        {
+                            SendData();
+                        }
+
+                        break;
+                    }
+                }
+                tracker.teleporters.Add(this);
+            }
         }
 
         public void Disconnect()
         {
-            TPTrackerWorld tracker = mod.GetModWorld<TPTrackerWorld>();
-            if (Prev != Next)
+            if (!isLocked)
+                return;
+
+            if (Main.netMode == 1)
             {
-                GetByPos(Prev).Next = Next;
-                GetByPos(Next).Prev = Prev;
+                SendRequest(TPUnchained.ModMessageID.RequestUnlock);
             }
-            else if (Next != Point16.Zero)
+            else
             {
-                GetByPos(Next).Next = Point16.Zero;
-                GetByPos(Next).Prev = Point16.Zero;
+                isLocked = false;
+
+                TPTrackerWorld tracker = mod.GetModWorld<TPTrackerWorld>();
+                if (Prev != Next)
+                {
+                    GetByPos(Prev).Next = Next;
+                    GetByPos(Next).Prev = Prev;
+                    if (Main.netMode == 2)
+                    {
+                        GetByPos(Prev).SendData();
+                        GetByPos(Next).SendData();
+                    }
+                }
+                else if (Next != Point16.Zero)
+                {
+                    GetByPos(Next).Next = Point16.Zero;
+                    GetByPos(Next).Prev = Point16.Zero;
+                    if (Main.netMode == 2)
+                    {
+                        GetByPos(Next).SendData();
+                    }
+                }
+
+                Next = Point16.Zero;
+                Prev = Point16.Zero;
+                tracker.teleporters.Remove(this);
+
+                if (Main.netMode == 2)
+                {
+                    SendData();
+                }
             }
-            Next = Point16.Zero;
-            Prev = Point16.Zero;
-            tracker.teleporters.Remove(this);
-            isLocked = false;
         }
 
         public void PushDown()
         {
-            if (Prev != Next)
+            if (!isLocked)
+                return;
+
+            if (Main.netMode == 1)
             {
-                GetByPos(Prev).Next = Next;
-                GetByPos(Next).Prev = Prev;
+                SendRequest(TPUnchained.ModMessageID.RequestPush);
+            }
+            else
+            {
+                if (Prev != Next)
+                {
+                    List<TEWirelessTeleporter> toShare = new List<TEWirelessTeleporter>();
+                    toShare.Add(this);
 
-                Prev = Next;
+                    GetByPos(Prev).Next = Next;
+                    toShare.Add(GetByPos(Prev));
+                    GetByPos(Next).Prev = Prev;
+                    toShare.Add(GetByPos(Next));
 
-                Next = GetByPos(Prev).Next;
-                GetByPos(Next).Prev = Position;
+                    Prev = Next;
 
-                GetByPos(Prev).Next = Position;
+                    Next = GetByPos(Prev).Next;
+                    GetByPos(Next).Prev = Position;
+                    toShare.Add(GetByPos(Next));
+
+                    GetByPos(Prev).Next = Position;
+
+                    if(Main.netMode == 2)
+                    {
+                        foreach (var item in toShare)
+                        {
+                            item.SendData();
+                        }
+                    }
+                }
             }
         }
 
@@ -151,6 +228,23 @@ namespace TPUnchained.Tiles
                     }
                 }
             }
+        }
+
+        private void SendRequest(TPUnchained.ModMessageID request)
+        {
+            ModPacket packet = mod.GetPacket();
+            packet.Write((byte)request);
+            packet.Write(ID);
+            packet.Send();
+        }
+
+        public void SendData()
+        {
+            ModPacket packet = mod.GetPacket();
+            packet.Write((byte)TPUnchained.ModMessageID.ShareTeleporterData);
+            packet.Write(ID);
+            NetSend(packet, false);
+            packet.Send();
         }
 
         public int GetAddress()
@@ -217,8 +311,18 @@ namespace TPUnchained.Tiles
             Prev = reader.ReadPackedVector2().ToPoint16();
             Next = reader.ReadPackedVector2().ToPoint16();
 
-            if (isLocked)
-                mod.GetModWorld<TPTrackerWorld>().teleporters.Add(this);
+            TPTrackerWorld tracker = mod.GetModWorld<TPTrackerWorld>();
+
+            if (!tracker.teleporters.Contains(this))
+            {
+                if (isLocked)
+                    tracker.teleporters.Add(this);
+            }
+            else
+            {
+                if (!isLocked)
+                    tracker.teleporters.Remove(this);
+            }
         }
     }
 }
