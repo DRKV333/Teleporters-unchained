@@ -3,6 +3,7 @@ using Terraria;
 using Terraria.DataStructures;
 using Terraria.Enums;
 using Terraria.ID;
+using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ObjectData;
 using TPUnchained.Items;
@@ -18,6 +19,8 @@ namespace TPUnchained.Tiles
             Main.tileNoFail[Type] = true;
             dustType = 1;
 
+            TileObjectData.newTile.CopyFrom(TileObjectData.Style1x1);
+
             TileObjectData.newTile.Width = 3;
             TileObjectData.newTile.Height = 1;
             TileObjectData.newTile.Origin = new Point16(1, 0);
@@ -29,7 +32,9 @@ namespace TPUnchained.Tiles
             TileObjectData.newTile.CoordinatePadding = 2;
             TileObjectData.addTile(Type);
 
-            AddMapEntry(new Color(255, 255, 255));
+            ModTranslation label = CreateMapEntryName();
+            label.AddTranslation(GameCulture.English, "Wireless teleporter");
+            AddMapEntry(new Color(46, 184, 214), label);
         }
 
         public bool TryGetTE(int i, int j, out TEWirelessTeleporter te)
