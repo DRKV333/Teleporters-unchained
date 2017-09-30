@@ -59,6 +59,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ChestPlacementFix.cs" />
     <Compile Include="Items\FineTuningWrenchItem.cs" />
     <Compile Include="Items\WirelessTeleporterItem.cs" />
     <Compile Include="Tiles\TEWirelessTeleporter.cs" />
