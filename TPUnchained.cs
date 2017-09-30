@@ -1,9 +1,9 @@
 ﻿using System.IO;
+using Terraria;
 using Terraria.DataStructures;
 using Terraria.ModLoader;
-using TPUnchained.Tracking;
 using TPUnchained.Tiles;
-using Terraria;
+using TPUnchained.Tracking;
 
 namespace TPUnchained
 {
@@ -41,9 +41,11 @@ namespace TPUnchained
                     case ModMessageID.RequestLock:
                         TEw.Connect();
                         break;
+
                     case ModMessageID.RequestUnlock:
                         TEw.Disconnect();
                         break;
+
                     case ModMessageID.RequestPush:
                         TEw.PushDown();
                         break;

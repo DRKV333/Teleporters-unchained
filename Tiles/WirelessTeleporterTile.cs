@@ -200,7 +200,7 @@ namespace TPUnchained.Tiles
                 }
             }
 
-            if(Main.netMode == 1 && success)
+            if (Main.netMode == 1 && success)
             {
                 NetMessage.SendTileSquare(-1, i, j, 1, TileChangeType.None);
             }

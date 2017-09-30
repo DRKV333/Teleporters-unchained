@@ -161,7 +161,7 @@ namespace TPUnchained.Tiles
 
                     GetByPos(Prev).Next = Position;
 
-                    if(Main.netMode == 2)
+                    if (Main.netMode == 2)
                     {
                         foreach (var item in toShare)
                         {

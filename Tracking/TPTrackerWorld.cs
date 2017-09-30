@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.ModLoader;
-using Terraria.ModLoader.IO;
 using TPUnchained.Items;
 using TPUnchained.Tiles;
-using System.IO;
 
 namespace TPUnchained.Tracking
 {
@@ -47,6 +45,5 @@ namespace TPUnchained.Tracking
                 }
             }
         }
-
     }
 }
