@@ -12,6 +12,8 @@ namespace TPUnchained.Tiles
 {
     public class TEWirelessTeleporter : ModTileEntity
     {
+        private bool autoTrigger = false;
+
         public bool isLocked = false;
         public Point16 Prev = Point16.Zero;
         public Point16 Next = Point16.Zero;
@@ -172,24 +174,29 @@ namespace TPUnchained.Tiles
             }
         }
 
+        public void CheckTriggerState()
+        {
+            Tile[] tile = new Tile[] { Main.tile[Position.X + 2, Position.Y], Main.tile[Position.X - 2, Position.Y] };
+            foreach (var item in tile)
+            {
+                if (item != null && item.active() && item.type == mod.TileType<TeleporterAutotriggerTile>())
+                {
+                    autoTrigger = true;
+                    return;
+                }
+            }
+            autoTrigger = false;
+        }
+
         public void Teleport()
         {
             if (Next != Point16.Zero)
-                Teleport(Position, Next);
-            if (Prev != Point16.Zero)
-                Teleport(Prev, Position);
-
-            for (int i = 0; i < Main.player.Length; i++)
-            {
-                Main.player[i].teleporting = false;
-            }
-            for (int i = 0; i < Main.npc.Length; i++)
-            {
-                Main.npc[i].teleporting = false;
-            }
+                Teleport(Position, Next, false);
+            if (Prev != Point16.Zero && Prev != Next)
+                Teleport(Prev, Position, false);
         }
 
-        private void Teleport(Point16 from, Point16 to)
+        private void Teleport(Point16 from, Point16 to, bool auto)
         {
             Rectangle fromRect = new Rectangle(from.X * 16, from.Y * 16 - 48, 48, 48);
             Rectangle toRect = new Rectangle(to.X * 16, to.Y * 16 - 48, 48, 48);
@@ -201,8 +208,12 @@ namespace TPUnchained.Tiles
                 {
                     if (Main.player[i].active && !Main.player[i].dead && !Main.player[i].teleporting && fromRect.Intersects(Main.player[i].getRect()))
                     {
+                        if (!CanAuto(i) && auto)
+                        {
+                            continue;
+                        }
+
                         Vector2 newPos = Main.player[i].position + delta;
-                        Main.player[i].teleporting = true;
                         if (Main.netMode == 2)
                         {
                             RemoteClient.CheckSection(i, newPos, 1);
@@ -216,17 +227,40 @@ namespace TPUnchained.Tiles
                 }
             }
 
-            for (int i = 0; i < Main.npc.Length; i++)
+            if (!auto)
             {
-                if (Main.npc[i].active && !Main.npc[i].teleporting && Main.npc[i].lifeMax > 5 && !Main.npc[i].boss && !Main.npc[i].noTileCollide)
+                for (int i = 0; i < Main.npc.Length; i++)
                 {
-                    int type = Main.npc[i].type;
-                    if (!NPCID.Sets.TeleportationImmune[type] && fromRect.Intersects(Main.npc[i].getRect()))
+                    if (Main.npc[i].active && !Main.npc[i].teleporting && Main.npc[i].lifeMax > 5 && !Main.npc[i].boss && !Main.npc[i].noTileCollide)
                     {
-                        Main.npc[i].teleporting = true;
-                        Main.npc[i].Teleport(Main.npc[i].position + delta, 0, 0);
+                        int type = Main.npc[i].type;
+                        if (!NPCID.Sets.TeleportationImmune[type] && fromRect.Intersects(Main.npc[i].getRect()))
+                        {
+                            Main.npc[i].Teleport(Main.npc[i].position + delta, 0, 0);
+                        }
                     }
                 }
+            }
+        }
+
+        private bool CanAuto(int player)
+        {
+            TPTrackerWorld tracker = mod.GetModWorld<TPTrackerWorld>();
+
+            if (tracker.autoPrev[player] != ID)
+            {
+                tracker.autoPrev[player] = GetByPos(Next).ID;
+                tracker.autoCooldown[player] = TPTrackerWorld.cooldown;
+                return true;
+            }
+            return false;
+        }
+
+        public override void Update()
+        {
+            if(autoTrigger && isLocked)
+            {
+                Teleport(Position, Next, true);
             }
         }
 
@@ -255,7 +289,7 @@ namespace TPUnchained.Tiles
             return add;
         }
 
-        public TEWirelessTeleporter GetByPos(Point16 pos)
+        public static TEWirelessTeleporter GetByPos(Point16 pos)
         {
             return (TEWirelessTeleporter)ByPosition[pos];
         }
@@ -291,6 +325,8 @@ namespace TPUnchained.Tiles
                 else
                     isLocked = false;
             }
+
+            CheckTriggerState();
 
             if (isLocked)
                 mod.GetModWorld<TPTrackerWorld>().teleporters.Add(this);

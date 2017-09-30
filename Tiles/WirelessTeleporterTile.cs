@@ -154,6 +154,17 @@ namespace TPUnchained.Tiles
                 TE.Teleport();
         }
 
+        public override bool TileFrame(int i, int j, ref bool resetFrame, ref bool noBreak)
+        {
+            TEWirelessTeleporter TE;
+            if (TryGetTE(i, j, out TE))
+            {
+                TE.CheckTriggerState();
+            }
+
+            return true;
+        }
+
         public override void MouseOver(int i, int j)
         {
             Main.LocalPlayer.noThrow = 2;
