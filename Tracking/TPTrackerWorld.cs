@@ -6,6 +6,7 @@ using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 using TPUnchained.Items;
 using TPUnchained.Tiles;
+using System.IO;
 
 namespace TPUnchained.Tracking
 {
@@ -13,7 +14,7 @@ namespace TPUnchained.Tracking
     {
         public List<TEWirelessTeleporter> teleporters = new List<TEWirelessTeleporter>();
 
-        public override void Load(TagCompound tag)
+        public override void Initialize()
         {
             teleporters.Clear();
         }
