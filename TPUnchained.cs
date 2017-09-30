@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using Terraria.DataStructures;
 using Terraria.ModLoader;
+using TPUnchained.Tracking;
 using TPUnchained.Tiles;
 using Terraria;
 
@@ -26,7 +27,10 @@ namespace TPUnchained
 
             TileEntity TE;
             if (!TileEntity.ByID.TryGetValue(id, out TE))
+            {
+                GetModWorld<TPTrackerWorld>().teleporters.RemoveAll(x => x.ID == id);
                 return;
+            }
 
             TEWirelessTeleporter TEw = (TEWirelessTeleporter)TE;
 
