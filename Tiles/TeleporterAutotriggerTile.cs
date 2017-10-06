@@ -45,5 +45,20 @@ namespace TPUnchained.Tiles
 
             AddMapEntry(new Color(255, 255, 255));
         }
+
+        public override void HitWire(int i, int j)
+        {
+            Tile tile = Main.tile[i, j];
+
+            if (tile.frameX == 0)
+                tile.frameX = 18;
+            else
+                tile.frameX = 0;
+
+            WorldGen.SquareTileFrame(i, j, false);
+
+            if (Main.netMode == 2)
+                NetMessage.SendTileSquare(-1, i, j, 1, Terraria.ID.TileChangeType.None);
+        }
     }
 }

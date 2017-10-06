@@ -179,7 +179,7 @@ namespace TPUnchained.Tiles
             Tile[] tile = new Tile[] { Main.tile[Position.X + 2, Position.Y], Main.tile[Position.X - 2, Position.Y] };
             foreach (var item in tile)
             {
-                if (item != null && item.active() && item.type == mod.TileType<TeleporterAutotriggerTile>())
+                if (item != null && item.active() && item.type == mod.TileType<TeleporterAutotriggerTile>() && item.frameX == 0)
                 {
                     autoTrigger = true;
                     return;
