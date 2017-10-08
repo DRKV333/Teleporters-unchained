@@ -1,5 +1,5 @@
 author = DRKV & JamesTMP
-version = 1.0
+version = 1.1
 displayName = Teleporters unchained
 homepage = https://forums.terraria.org/index.php?threads/teleporters-unchained.62348/
 includePDB = true

@@ -17,3 +17,10 @@ Spellbound
 
 AlexanderStarship
    Wireless teleportation idea on TMEC
+
+Changelog:
+
+1.1:
+- Fixed multiplayer
+- Fixed tile object placement on teleporters
+- Added auto-trigger
