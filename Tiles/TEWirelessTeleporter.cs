@@ -258,7 +258,7 @@ namespace TPUnchained.Tiles
 
         public override void Update()
         {
-            if(autoTrigger && isLocked)
+            if (autoTrigger && isLocked)
             {
                 Teleport(Position, Next, true);
             }

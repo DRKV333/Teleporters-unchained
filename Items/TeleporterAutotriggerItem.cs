@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Terraria;
+﻿using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 using TPUnchained.Tiles;
 
 namespace TPUnchained.Items
 {
-    class TeleporterAutotriggerItem : ModItem
+    public class TeleporterAutotriggerItem : ModItem
     {
         public override void SetStaticDefaults()
         {
