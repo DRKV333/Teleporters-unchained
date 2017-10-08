@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using System.Collections.Generic;
 using System.IO;
 using Terraria;
 using Terraria.DataStructures;
@@ -11,6 +12,8 @@ namespace TPUnchained.Tiles
 {
     public class TEWirelessTeleporter : ModTileEntity
     {
+        private bool autoTrigger = false;
+
         public bool isLocked = false;
         public Point16 Prev = Point16.Zero;
         public Point16 Next = Point16.Zero;
@@ -33,89 +36,170 @@ namespace TPUnchained.Tiles
 
         public void Connect()
         {
-            int address = GetAddress();
-            TPTrackerWorld tracker = mod.GetModWorld<TPTrackerWorld>();
-            foreach (var item in tracker.teleporters)
+            if (isLocked)
+                return;
+
+            if (Main.netMode == 1)
             {
-                if (item.GetAddress() == address)
-                {
-                    if (item.Prev != Point16.Zero)
-                    {
-                        Prev = item.Prev;
-                        Next = item.Position;
-                        item.Prev = Position;
-                        GetByPos(Prev).Next = Position;
-                    }
-                    else
-                    {
-                        item.Prev = Position;
-                        item.Next = Position;
-                        Prev = item.Position;
-                        Next = item.Position;
-                    }
-                    break;
-                }
+                SendRequest(TPUnchained.ModMessageID.RequestLock);
             }
-            tracker.teleporters.Add(this);
-            isLocked = true;
+            else
+            {
+                isLocked = true;
+
+                int address = GetAddress();
+                TPTrackerWorld tracker = mod.GetModWorld<TPTrackerWorld>();
+                foreach (var item in tracker.teleporters)
+                {
+                    if (item.GetAddress() == address)
+                    {
+                        if (item.Prev != Point16.Zero)
+                        {
+                            Prev = item.Prev;
+                            Next = item.Position;
+                            item.Prev = Position;
+                            GetByPos(Prev).Next = Position;
+                            if (Main.netMode == 2)
+                            {
+                                GetByPos(Prev).SendData();
+                                item.SendData();
+                            }
+                        }
+                        else
+                        {
+                            item.Prev = Position;
+                            item.Next = Position;
+                            Prev = item.Position;
+                            Next = item.Position;
+                            if (Main.netMode == 2)
+                            {
+                                item.SendData();
+                            }
+                        }
+
+                        if (Main.netMode == 2)
+                        {
+                            SendData();
+                        }
+
+                        break;
+                    }
+                }
+                tracker.teleporters.Add(this);
+            }
         }
 
         public void Disconnect()
         {
-            TPTrackerWorld tracker = mod.GetModWorld<TPTrackerWorld>();
-            if (Prev != Next)
+            if (!isLocked)
+                return;
+
+            if (Main.netMode == 1)
             {
-                GetByPos(Prev).Next = Next;
-                GetByPos(Next).Prev = Prev;
+                SendRequest(TPUnchained.ModMessageID.RequestUnlock);
             }
-            else if (Next != Point16.Zero)
+            else
             {
-                GetByPos(Next).Next = Point16.Zero;
-                GetByPos(Next).Prev = Point16.Zero;
+                isLocked = false;
+
+                TPTrackerWorld tracker = mod.GetModWorld<TPTrackerWorld>();
+                if (Prev != Next)
+                {
+                    GetByPos(Prev).Next = Next;
+                    GetByPos(Next).Prev = Prev;
+                    if (Main.netMode == 2)
+                    {
+                        GetByPos(Prev).SendData();
+                        GetByPos(Next).SendData();
+                    }
+                }
+                else if (Next != Point16.Zero)
+                {
+                    GetByPos(Next).Next = Point16.Zero;
+                    GetByPos(Next).Prev = Point16.Zero;
+                    if (Main.netMode == 2)
+                    {
+                        GetByPos(Next).SendData();
+                    }
+                }
+
+                Next = Point16.Zero;
+                Prev = Point16.Zero;
+                tracker.teleporters.Remove(this);
+
+                if (Main.netMode == 2)
+                {
+                    SendData();
+                }
             }
-            Next = Point16.Zero;
-            Prev = Point16.Zero;
-            tracker.teleporters.Remove(this);
-            isLocked = false;
         }
 
         public void PushDown()
         {
-            if (Prev != Next)
+            if (!isLocked)
+                return;
+
+            if (Main.netMode == 1)
             {
-                GetByPos(Prev).Next = Next;
-                GetByPos(Next).Prev = Prev;
-
-                Prev = Next;
-
-                Next = GetByPos(Prev).Next;
-                GetByPos(Next).Prev = Position;
-
-                GetByPos(Prev).Next = Position;
+                SendRequest(TPUnchained.ModMessageID.RequestPush);
             }
+            else
+            {
+                if (Prev != Next)
+                {
+                    List<TEWirelessTeleporter> toShare = new List<TEWirelessTeleporter>();
+                    toShare.Add(this);
+
+                    GetByPos(Prev).Next = Next;
+                    toShare.Add(GetByPos(Prev));
+                    GetByPos(Next).Prev = Prev;
+                    toShare.Add(GetByPos(Next));
+
+                    Prev = Next;
+
+                    Next = GetByPos(Prev).Next;
+                    GetByPos(Next).Prev = Position;
+                    toShare.Add(GetByPos(Next));
+
+                    GetByPos(Prev).Next = Position;
+
+                    if (Main.netMode == 2)
+                    {
+                        foreach (var item in toShare)
+                        {
+                            item.SendData();
+                        }
+                    }
+                }
+            }
+        }
+
+        public void CheckTriggerState()
+        {
+            Tile[] tile = new Tile[] { Main.tile[Position.X + 2, Position.Y], Main.tile[Position.X - 2, Position.Y] };
+            foreach (var item in tile)
+            {
+                if (item != null && item.active() && item.type == mod.TileType<TeleporterAutotriggerTile>() && item.frameX == 0)
+                {
+                    autoTrigger = true;
+                    return;
+                }
+            }
+            autoTrigger = false;
         }
 
         public void Teleport()
         {
             if (Next != Point16.Zero)
-                Teleport(Position, Next);
-            if (Prev != Point16.Zero)
-                Teleport(Prev, Position);
-
-            for (int i = 0; i < Main.player.Length; i++)
-            {
-                Main.player[i].teleporting = false;
-            }
-            for (int i = 0; i < Main.npc.Length; i++)
-            {
-                Main.npc[i].teleporting = false;
-            }
+                Teleport(Position, Next, false);
+            if (Prev != Point16.Zero && Prev != Next)
+                Teleport(Prev, Position, false);
         }
 
-        private void Teleport(Point16 from, Point16 to)
+        private void Teleport(Point16 from, Point16 to, bool auto)
         {
-            Rectangle fromRect = new Rectangle(from.X * 16, from.Y * 16 - 48, 48, 48);
-            Rectangle toRect = new Rectangle(to.X * 16, to.Y * 16 - 48, 48, 48);
+            Rectangle fromRect = new Rectangle(from.X * 16 - 16, from.Y * 16 - 48, 48, 48);
+            Rectangle toRect = new Rectangle(to.X * 16 - 16, to.Y * 16 - 48, 48, 48);
             Vector2 delta = new Vector2(toRect.X - fromRect.X, toRect.Y - fromRect.Y);
 
             if (!Wiring.blockPlayerTeleportationForOneIteration)
@@ -124,8 +208,12 @@ namespace TPUnchained.Tiles
                 {
                     if (Main.player[i].active && !Main.player[i].dead && !Main.player[i].teleporting && fromRect.Intersects(Main.player[i].getRect()))
                     {
+                        if (!CanAuto(i) && auto)
+                        {
+                            continue;
+                        }
+
                         Vector2 newPos = Main.player[i].position + delta;
-                        Main.player[i].teleporting = true;
                         if (Main.netMode == 2)
                         {
                             RemoteClient.CheckSection(i, newPos, 1);
@@ -139,18 +227,58 @@ namespace TPUnchained.Tiles
                 }
             }
 
-            for (int i = 0; i < Main.npc.Length; i++)
+            if (!auto)
             {
-                if (Main.npc[i].active && !Main.npc[i].teleporting && Main.npc[i].lifeMax > 5 && !Main.npc[i].boss && !Main.npc[i].noTileCollide)
+                for (int i = 0; i < Main.npc.Length; i++)
                 {
-                    int type = Main.npc[i].type;
-                    if (!NPCID.Sets.TeleportationImmune[type] && fromRect.Intersects(Main.npc[i].getRect()))
+                    if (Main.npc[i].active && !Main.npc[i].teleporting && Main.npc[i].lifeMax > 5 && !Main.npc[i].boss && !Main.npc[i].noTileCollide)
                     {
-                        Main.npc[i].teleporting = true;
-                        Main.npc[i].Teleport(Main.npc[i].position + delta, 0, 0);
+                        int type = Main.npc[i].type;
+                        if (!NPCID.Sets.TeleportationImmune[type] && fromRect.Intersects(Main.npc[i].getRect()))
+                        {
+                            Main.npc[i].Teleport(Main.npc[i].position + delta, 0, 0);
+                        }
                     }
                 }
             }
+        }
+
+        private bool CanAuto(int player)
+        {
+            TPTrackerWorld tracker = mod.GetModWorld<TPTrackerWorld>();
+
+            if (tracker.autoPrev[player] != ID)
+            {
+                tracker.autoPrev[player] = GetByPos(Next).ID;
+                tracker.autoCooldown[player] = TPTrackerWorld.cooldown;
+                return true;
+            }
+            return false;
+        }
+
+        public override void Update()
+        {
+            if (autoTrigger && isLocked)
+            {
+                Teleport(Position, Next, true);
+            }
+        }
+
+        private void SendRequest(TPUnchained.ModMessageID request)
+        {
+            ModPacket packet = mod.GetPacket();
+            packet.Write((byte)request);
+            packet.Write(ID);
+            packet.Send();
+        }
+
+        public void SendData()
+        {
+            ModPacket packet = mod.GetPacket();
+            packet.Write((byte)TPUnchained.ModMessageID.ShareTeleporterData);
+            packet.Write(ID);
+            NetSend(packet, false);
+            packet.Send();
         }
 
         public int GetAddress()
@@ -161,7 +289,7 @@ namespace TPUnchained.Tiles
             return add;
         }
 
-        public TEWirelessTeleporter GetByPos(Point16 pos)
+        public static TEWirelessTeleporter GetByPos(Point16 pos)
         {
             return (TEWirelessTeleporter)ByPosition[pos];
         }
@@ -198,6 +326,8 @@ namespace TPUnchained.Tiles
                     isLocked = false;
             }
 
+            CheckTriggerState();
+
             if (isLocked)
                 mod.GetModWorld<TPTrackerWorld>().teleporters.Add(this);
         }
@@ -217,8 +347,18 @@ namespace TPUnchained.Tiles
             Prev = reader.ReadPackedVector2().ToPoint16();
             Next = reader.ReadPackedVector2().ToPoint16();
 
-            if (isLocked)
-                mod.GetModWorld<TPTrackerWorld>().teleporters.Add(this);
+            TPTrackerWorld tracker = mod.GetModWorld<TPTrackerWorld>();
+
+            if (!tracker.teleporters.Contains(this))
+            {
+                if (isLocked)
+                    tracker.teleporters.Add(this);
+            }
+            else
+            {
+                if (!isLocked)
+                    tracker.teleporters.Remove(this);
+            }
         }
     }
 }

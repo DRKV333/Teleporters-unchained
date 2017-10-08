@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.ModLoader;
-using Terraria.ModLoader.IO;
 using TPUnchained.Items;
 using TPUnchained.Tiles;
 
@@ -11,14 +10,38 @@ namespace TPUnchained.Tracking
 {
     internal class TPTrackerWorld : ModWorld
     {
+        public const byte cooldown = 180;
+
         public List<TEWirelessTeleporter> teleporters = new List<TEWirelessTeleporter>();
 
-        public override void Load(TagCompound tag)
+        public int[] autoPrev;
+        public byte[] autoCooldown;
+
+        public override void Initialize()
         {
             teleporters.Clear();
+
+            autoPrev = new int[Main.player.Length];
+            for (int i = 0; i < autoPrev.Length; i++)
+            {
+                autoPrev[i] = -1;
+            }
+            autoCooldown = new byte[Main.player.Length];
         }
 
         public override void PostUpdate()
+        {
+            for (int i = 0; i < autoCooldown.Length; i++)
+            {
+                if (autoCooldown[i] > 0)
+                    autoCooldown[i]--;
+
+                if (autoCooldown[i] == 0)
+                    autoPrev[i] = -1;
+            }
+        }
+
+        public override void PostDrawTiles()
         {
             if (Main.LocalPlayer.HeldItem.type != mod.ItemType<FineTuningWrenchItem>())
                 return;

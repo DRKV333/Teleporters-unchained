@@ -5,18 +5,18 @@ using TPUnchained.Tiles;
 
 namespace TPUnchained.Items
 {
-    public class WirelessTeleporterItem : ModItem
+    public class TeleporterAutotriggerItem : ModItem
     {
         public override void SetStaticDefaults()
         {
-            DisplayName.SetDefault("Wireless teleporter");
-            Tooltip.SetDefault("Right click on slots with gems to set address\nUse Fine-tuning wrench to lock");
+            DisplayName.SetDefault("Teleporter auto-trigger");
+            Tooltip.SetDefault("Place on the side of a Wireless teleporter\nAutomatically teleports players\nDisable with wire");
         }
 
         public override void SetDefaults()
         {
             item.width = 28;
-            item.height = 14;
+            item.height = 30;
             item.value = Item.sellPrice(0, 2, 0, 0);
             item.rare = 9;
             item.maxStack = 99;
@@ -27,7 +27,7 @@ namespace TPUnchained.Items
             item.useStyle = 1;
             item.consumable = true;
             item.mech = true;
-            item.createTile = mod.TileType<WirelessTeleporterTile>();
+            item.createTile = mod.TileType<TeleporterAutotriggerTile>();
             item.placeStyle = 0;
         }
 
@@ -35,9 +35,9 @@ namespace TPUnchained.Items
         {
             ModRecipe recipe = new ModRecipe(mod);
 
-            recipe.AddIngredient(ItemID.Teleporter, 1);
-            recipe.AddIngredient(ItemID.Wire, 10);
-            recipe.AddIngredient(ItemID.Ectoplasm, 8);
+            recipe.AddIngredient(ItemID.LogicSensor_Above, 1);
+            recipe.AddIngredient(ItemID.Wire, 5);
+            recipe.AddIngredient(ItemID.Ectoplasm, 3);
 
             recipe.SetResult(item.type, 1);
 
