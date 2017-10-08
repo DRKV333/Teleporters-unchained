@@ -43,7 +43,7 @@ namespace TPUnchained.Tiles
 
             drop = mod.ItemType<TeleporterAutotriggerItem>();
 
-            AddMapEntry(new Color(255, 255, 255));
+            AddMapEntry(new Color(46, 184, 214));
         }
 
         public override void HitWire(int i, int j)
