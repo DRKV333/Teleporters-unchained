@@ -27,7 +27,7 @@ namespace TPUnchained.Tiles
             TileObjectData.newTile.Height = 1;
             TileObjectData.newTile.Origin = new Point16(0, 0);
             TileObjectData.newTile.AnchorBottom = new AnchorData(AnchorType.None, 0, 0);
-            TileObjectData.newTile.AnchorLeft = new AnchorData(AnchorType.SolidTile, TileObjectData.newTile.Height, 0);
+            TileObjectData.newTile.AnchorRight = new AnchorData(AnchorType.SolidTile, TileObjectData.newTile.Height, 0);
             TileObjectData.newTile.AnchorValidTiles = new int[] { mod.TileType<WirelessTeleporterTile>() };
             TileObjectData.newTile.UsesCustomCanPlace = true;
             TileObjectData.newTile.CoordinateHeights = new int[] { 16 };
@@ -35,8 +35,8 @@ namespace TPUnchained.Tiles
             TileObjectData.newTile.CoordinatePadding = 2;
 
             TileObjectData.newAlternate.CopyFrom(TileObjectData.newTile);
-            TileObjectData.newAlternate.AnchorLeft = new AnchorData(AnchorType.None, 0, 0);
-            TileObjectData.newAlternate.AnchorRight = new AnchorData(AnchorType.SolidTile, TileObjectData.newAlternate.Height, 0);
+            TileObjectData.newAlternate.AnchorRight = new AnchorData(AnchorType.None, 0, 0);
+            TileObjectData.newAlternate.AnchorLeft = new AnchorData(AnchorType.SolidTile, TileObjectData.newAlternate.Height, 0);
             TileObjectData.addAlternate(1);
 
             TileObjectData.addTile(Type);
